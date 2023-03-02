@@ -14,5 +14,5 @@ pretty_env_logger = "0.4.0"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93"
 typenum = "1.16.0"
-viewercloud = {git = "https://github.com/ThomAub/viewercloud.git", branch = "master"}
+viewercloud = {git = "https://github.com/quantumish/viewercloud.git", branch = "master"}
 kiss3d = { version = "0.35" }

@@ -35,11 +35,19 @@ impl Trail {
             
         }
         info!("Loaded {} points from {}", pts.len(), las_path);
+        let mapped = pts.clone().into_iter().map(|i| {
+            // println!("{},{},{}", i.0.x, i.0.y, i.0.z);
+            // println!("{},{},{}", i.0.x as f32, i.0.y as f32, i.0.z as f32);
+            nalgebra::Point3::new(
+            i.0.x as f32 - 564400.0,
+            i.0.y as f32 - 4146800.0,
+            i.0.z as f32
+            )}).collect::<Vec<nalgebra::Point3<f32>>>();
+        info!("{}", mapped.len());
         Trail {
-            points: KdTree::par_build_by_ordered_float(pts.clone()),
+            points: KdTree::par_build_by_ordered_float(pts),
             pcl: viewercloud::PointCloud {
-                data: pts.into_iter().map(|i| nalgebra::Point3::new(i.0.z as f32, i.0.x as f32, i.0.y as f32))
-                    .collect::<Vec<nalgebra::Point3<f32>>>()
+                data: mapped
             }
         }
     }
@@ -62,9 +70,10 @@ pub fn main() {
     info!("Constructed k-tree.");
     let point_cloud_data: viewercloud::PointCloudGPU =
         GPUVec::new(t.pcl.data, BufferType::Array, AllocationType::StreamDraw);
+    log::info!("gpu {}", point_cloud_data.len());
     let window = Window::new_with_size("Edgewood Park", 1500, 1000);
     let app = viewercloud::viewer::AppState {
-        point_cloud_renderer: viewercloud::renderer::PointCloudRenderer::new(2.0, point_cloud_data),
+        point_cloud_renderer: viewercloud::renderer::PointCloudRenderer::new(0.1, point_cloud_data),
     };
 
     window.render_loop(app);
