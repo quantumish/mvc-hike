@@ -18,8 +18,8 @@ impl KdPoint for Point {
     type Dim = typenum::U2;
     fn at(&self, k: usize) -> f64 {
         match k {
-            0 => self.0.x,
-            1 => self.0.y,
+            0 => self.0.x - 564400.0,
+            1 => self.0.y - 4146800.0,
             _ => panic!("Got request to access dim {k} of 2d data!")
         }
     }
@@ -53,13 +53,12 @@ impl Trail {
     }
 
     fn get_gradient(&self, coord: [f64; 2]) -> [f64; 2] {
-        println!(
-            "{}",
-            self.points.within_radius(
-                &coord,
-                1.0,                
-            ).len()
-        );
+        let pts = self.points.within_radius(&coord, 1.0);
+        let (pt, o) = (pts[0], pts[1]);        
+        let (dz, dx, dy) = (o.0.z-pt.0.z, o.0.x-pt.0.x, o.0.y-pt.0.y);
+        
+        println!("dz={dz} dx={dx} dy={dy}");
+        println!("dz/dy = {}, dz/dx = {}", dz/dy, dz/dx);
         [0.0,0.0]
     }
 }
@@ -69,16 +68,17 @@ pub fn main() {
     let t = Trail::new("/Users/davfrei/Downloads/points.las");
     info!("Constructed k-tree.");
     let point_cloud_data: viewercloud::PointCloudGPU =
-        GPUVec::new(t.pcl.data, BufferType::Array, AllocationType::StreamDraw);
+        GPUVec::new(t.pcl.data.clone(), BufferType::Array, AllocationType::StreamDraw);
     log::info!("gpu {}", point_cloud_data.len());
     let window = Window::new_with_size("Edgewood Park", 1500, 1000);
     let app = viewercloud::viewer::AppState {
         point_cloud_renderer: viewercloud::renderer::PointCloudRenderer::new(0.1, point_cloud_data),
     };
 
+    // println!("{} {}", 564367.71- 564400.0,4146789.54- 4146800.0);
     window.render_loop(app);
+    // t.get_gradient([-100.0, 0.0]);
     
     // let json = serde_json::to_string(&t).unwrap();
     
-    // t.get_gradient([564367.71,4146789.54]);
 }
